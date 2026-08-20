@@ -19,31 +19,31 @@ The differential aspect means we fuzz **multiple implementations** of the same p
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────┐
 │                    spectra-fuzz                      │
 │                                                      │
-│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │ AFL++    │  │ Gemini API   │  │ Differential  │  │
-│  │ Engine   │──│ LLM Layer    │──│ Oracle        │  │
-│  │ Manager  │  │              │  │               │  │
-│  └──────────┘  │ • Crash      │  │ • Run same    │  │
-│       │        │   Analyzer   │  │   input thru  │  │
-│       │        │ • Mutation   │  │   all targets │  │
-│       │        │   Generator  │  │ • Normalize & │  │
-│       ▼        │ • Strategy   │  │   compare     │  │
-│  ┌──────────┐  │   Advisor    │  │ • Classify    │  │
-│  │ Coverage │  └──────────────┘  │   divergences │  │
-│  │ Monitor  │         │          └──────────────┘  │
-│  │ Plateau  │         ▼                             │
-│  │ Detector │  ┌──────────────┐                     │
-│  └──────────┘  │ Campaign     │                     │
-│       │        │ Orchestrator │                     │
-│       ▼        └──────────────┘                     │
-│  ┌──────────┐         │                             │
-│  │ Web      │◄────────┘                             │
-│  │ Dashboard│  Live coverage, crashes, divergences  │
-│  └──────────┘                                       │
-└─────────────────────────────────────────────────────┘
+│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │ AFL++    │  │ Gemini API   │  │ Differential  │   │
+│  │ Engine   │──│ LLM Layer    │──│ Oracle        │   │
+│  │ Manager  │  │              │  │               │   │
+│  └──────────┘  │ • Crash      │  │ • Run same    │   │
+│       │        │   Analyzer   │  │   input thru  │   │
+│       │        │ • Mutation   │  │   all targets │   │
+│       │        │   Generator  │  │ • Normalize & │   │
+│       ▼        │ • Strategy   │  │   compare     │   │
+│  ┌──────────┐  │   Advisor    │  │ • Classify    │   │
+│  │ Coverage │  └──────────────┘  │   divergences │   │
+│  │ Monitor  │         │          └──────────────┘    │
+│  │ Plateau  │         ▼                              │
+│  │ Detector │  ┌──────────────┐                      │
+│  └──────────┘  │ Campaign     │                      │
+│       │        │ Orchestrator │                      │
+│       ▼        └──────────────┘                      │
+│  ┌──────────┐         │                              │
+│  │ Web      │◄────────┘                              │
+│  │ Dashboard│  Live coverage, crashes, divergences   │
+│  └──────────┘                                        │
+└──────────────────────────────────────────────────────┘
 ```
 
 ## Quick Start
