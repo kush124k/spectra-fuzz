@@ -22,7 +22,7 @@ The differential aspect means we fuzz **multiple implementations** of the same p
 ┌──────────────────────────────────────────────────────┐
 │                    spectra-fuzz                      │
 │                                                      │
-│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  ┌──────────┐  ┌──────────────┐  ┌───────────────┐   │
 │  │ AFL++    │  │ Gemini API   │  │ Differential  │   │
 │  │ Engine   │──│ LLM Layer    │──│ Oracle        │   │
 │  │ Manager  │  │              │  │               │   │
@@ -33,7 +33,7 @@ The differential aspect means we fuzz **multiple implementations** of the same p
 │       ▼        │ • Strategy   │  │   compare     │   │
 │  ┌──────────┐  │   Advisor    │  │ • Classify    │   │
 │  │ Coverage │  └──────────────┘  │   divergences │   │
-│  │ Monitor  │         │          └──────────────┘    │
+│  │ Monitor  │         │          └───────────────┘   │
 │  │ Plateau  │         ▼                              │
 │  │ Detector │  ┌──────────────┐                      │
 │  └──────────┘  │ Campaign     │                      │
