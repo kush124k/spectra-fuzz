@@ -1,0 +1,80 @@
+# spectra-fuzz default campaign configuration
+
+[campaign]
+name = "http-parsers-diff"
+duration_seconds = 3600          # 1 hour default campaign
+poll_interval_seconds = 5        # how often to poll AFL++ stats
+output_dir = "./output"
+
+[engine]
+type = "afl++"
+binary = "afl-fuzz"              # path to afl-fuzz (in WSL or native)
+use_wsl = true                   # run AFL++ through WSL2
+wsl_distro = ""                  # empty = default WSL distro
+instances_per_target = 1         # number of AFL++ instances per target
+extra_args = ["-t", "1000"]      # extra args passed to afl-fuzz
+power_schedule = "explore"       # AFL++ power schedule
+
+[engine.sanitizers]
+asan = true
+ubsan = true
+msan = false
+
+[targets]
+# List of differential targets — same input, different implementations
+[[targets.binaries]]
+name = "llhttp"
+path = "./targets/http_parsers/harness_llhttp"
+args = ["@@"]                    # @@ = input file placeholder
+build_cmd = "make -C targets/http_parsers harness_llhttp"
+
+[[targets.binaries]]
+name = "picohttpparser"
+path = "./targets/http_parsers/harness_picohttpparser"
+args = ["@@"]
+build_cmd = "make -C targets/http_parsers harness_picohttpparser"
+
+[targets.seeds]
+directory = "./targets/http_parsers/seeds"
+
+[llm]
+provider = "gemini"
+fast_model = "gemini-2.5-flash"           # used for mutations, quick triage
+deep_model = "gemini-2.5-pro"             # used for deep crash analysis
+api_key_env = "GEMINI_API_KEY"
+
+[llm.budget]
+max_calls_per_hour = 200
+max_tokens_per_hour = 500000
+max_cost_usd_per_hour = 5.0
+
+[llm.triggers]
+# Coverage plateau: trigger LLM mutation after N seconds with no new edges
+plateau_threshold_seconds = 120
+# Crash analysis: analyze new unique crashes immediately
+crash_analysis_enabled = true
+# Divergence triage: auto-triage differential divergences
+divergence_triage_enabled = true
+# Strategy review: periodic high-level strategy review
+strategy_review_interval_seconds = 600
+
+[llm.mutation]
+seeds_per_request = 10                    # number of seeds to request per LLM call
+max_seed_size_bytes = 8192
+few_shot_examples = 5                     # number of successful past mutations as examples
+validate_before_inject = true             # basic format validation before corpus injection
+
+[differential]
+enabled = true
+comparison_mode = "semantic"              # "raw" | "semantic" | "normalized"
+ignore_patterns = [
+    "Date:.*",                            # ignore Date headers (always different)
+    "Server:.*",                          # ignore Server headers
+]
+divergence_db = "./output/divergences.db"
+
+[dashboard]
+enabled = true
+host = "127.0.0.1"
+port = 8077
+auto_open_browser = true

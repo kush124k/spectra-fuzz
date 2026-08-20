@@ -1,0 +1,8 @@
+GET /page1 HTTP/1.1
+Host: example.com
+Connection: keep-alive
+
+GET /page2 HTTP/1.1
+Host: example.com
+Connection: close
+

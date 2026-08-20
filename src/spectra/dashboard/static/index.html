@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>spectra-fuzz — LLM-Augmented Differential Fuzzer</title>
+    <meta name="description" content="Real-time dashboard for spectra-fuzz: LLM-augmented differential fuzzing with coverage visualization, crash analysis, and divergence tracking.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header id="main-header">
+        <div class="header-left">
+            <div class="logo">
+                <span class="logo-icon">◈</span>
+                <h1>spectra<span class="logo-accent">-fuzz</span></h1>
+            </div>
+            <div class="status-badge" id="status-badge">
+                <span class="status-dot"></span>
+                <span id="status-text">connecting...</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="header-stat">
+                <span class="stat-label">Runtime</span>
+                <span class="stat-value" id="runtime">00:00:00</span>
+            </div>
+            <div class="header-stat">
+                <span class="stat-label">LLM Budget</span>
+                <div class="budget-bar-container">
+                    <div class="budget-bar" id="budget-bar"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="dashboard">
+        <!-- Stats Row -->
+        <section class="stats-row" id="stats-row">
+            <div class="stat-card" id="card-execs">
+                <div class="stat-card-icon">⚡</div>
+                <div class="stat-card-content">
+                    <span class="stat-card-value" id="total-execs">0</span>
+                    <span class="stat-card-label">Total Executions</span>
+                </div>
+                <div class="stat-card-secondary" id="execs-per-sec">0 exec/s</div>
+            </div>
+            <div class="stat-card" id="card-coverage">
+                <div class="stat-card-icon">🎯</div>
+                <div class="stat-card-content">
+                    <span class="stat-card-value" id="coverage-pct">0.0%</span>
+                    <span class="stat-card-label">Edge Coverage</span>
+                </div>
+                <div class="stat-card-secondary" id="coverage-edges">0 / 0 edges</div>
+            </div>
+            <div class="stat-card crash" id="card-crashes">
+                <div class="stat-card-icon">💥</div>
+                <div class="stat-card-content">
+                    <span class="stat-card-value" id="unique-crashes">0</span>
+                    <span class="stat-card-label">Unique Crashes</span>
+                </div>
+                <div class="stat-card-secondary" id="crash-types">—</div>
+            </div>
+            <div class="stat-card divergence" id="card-divergences">
+                <div class="stat-card-icon">🔀</div>
+                <div class="stat-card-content">
+                    <span class="stat-card-value" id="total-divergences">0</span>
+                    <span class="stat-card-label">Divergences</span>
+                </div>
+                <div class="stat-card-secondary" id="div-bugs">0 bugs confirmed</div>
+            </div>
+            <div class="stat-card llm" id="card-llm">
+                <div class="stat-card-icon">🧠</div>
+                <div class="stat-card-content">
+                    <span class="stat-card-value" id="llm-calls">0</span>
+                    <span class="stat-card-label">LLM Calls</span>
+                </div>
+                <div class="stat-card-secondary" id="llm-seeds">0 seeds generated</div>
+            </div>
+        </section>
+
+        <!-- Charts Row -->
+        <section class="charts-row">
+            <div class="chart-card" id="coverage-chart-card">
+                <div class="chart-header">
+                    <h2>Coverage Timeline</h2>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-dot coverage-dot"></span>Edges Covered</span>
+                        <span class="legend-item"><span class="legend-dot llm-dot"></span>LLM Seed Injections</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="coverage-chart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card" id="execspeed-chart-card">
+                <div class="chart-header">
+                    <h2>Execution Speed</h2>
+                </div>
+                <div class="chart-container">
+                    <canvas id="execspeed-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lower Panels -->
+        <section class="panels-row">
+            <!-- Crash Feed -->
+            <div class="panel-card" id="crash-panel">
+                <div class="panel-header">
+                    <h2>💥 Crash Analysis Feed</h2>
+                    <span class="panel-badge" id="crash-count-badge">0</span>
+                </div>
+                <div class="panel-content" id="crash-feed">
+                    <div class="empty-state">
+                        <span class="empty-icon">🔍</span>
+                        <p>No crashes detected yet. Fuzzing in progress...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divergence Inspector -->
+            <div class="panel-card" id="divergence-panel">
+                <div class="panel-header">
+                    <h2>🔀 Divergence Inspector</h2>
+                    <span class="panel-badge" id="div-count-badge">0</span>
+                </div>
+                <div class="panel-content" id="divergence-feed">
+                    <div class="empty-state">
+                        <span class="empty-icon">⚖️</span>
+                        <p>Waiting for differential comparisons...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mutation Log -->
+        <section class="mutation-section">
+            <div class="panel-card full-width" id="mutation-panel">
+                <div class="panel-header">
+                    <h2>🧠 LLM Mutation Log</h2>
+                    <div class="mutation-stats">
+                        <span class="mutation-stat">Seeds: <strong id="mut-seeds">0</strong></span>
+                        <span class="mutation-stat">Hit New Coverage: <strong id="mut-hits">0</strong></span>
+                        <span class="mutation-stat">Hit Rate: <strong id="mut-rate">0%</strong></span>
+                    </div>
+                </div>
+                <div class="panel-content scrollable" id="mutation-feed">
+                    <div class="empty-state">
+                        <span class="empty-icon">🧬</span>
+                        <p>LLM mutations will appear here when coverage plateaus...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Connection Toast -->
+    <div class="toast" id="connection-toast">
+        <span class="toast-icon">🔌</span>
+        <span class="toast-message" id="toast-message">Connecting to spectra-fuzz...</span>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

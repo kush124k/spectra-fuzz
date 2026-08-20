@@ -1,0 +1,11 @@
+GET /path?query=1&key=val%20ue HTTP/1.0
+Host: 127.0.0.1:8080
+Accept-Language: en-US,en;q=0.9,fr;q=0.8
+Accept-Encoding: gzip, deflate, br
+Cache-Control: no-cache
+Pragma: no-cache
+X-Custom-Header: value-with-special-chars!@#$%^&*()
+X-Empty-Header:
+X-Multi-Value: val1, val2, val3
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.abc123
+
