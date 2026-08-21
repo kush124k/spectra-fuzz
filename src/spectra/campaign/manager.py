@@ -207,6 +207,9 @@ class CampaignManager:
                 except asyncio.CancelledError:
                     pass
 
+            # Export results to disk
+            self._export_results(output_dir)
+
             # Print final summary
             self._print_summary()
 
@@ -321,23 +324,36 @@ class CampaignManager:
                     if not self._scheduler.should_invoke(LLMTaskType.CRASH_ANALYSIS):
                         continue
 
-                    # Reproduce to get stack trace
+                    # Reproduce to get stack trace — we need the trace
+                    # populated before we can send to the analyzer
                     target_cfg = next(
                         (t for t in self._config.targets.binaries if t.name == name), None
                     )
-                    if target_cfg:
-                        trace = await engine.reproduce_crash(
-                            crash, Path(target_cfg.path), target_cfg.args
+                    if not target_cfg:
+                        logger.warning(
+                            "Cannot reproduce crash %s: no target config for '%s'",
+                            crash.crash_id, name,
                         )
-                        crash = CrashInfo(
-                            crash_id=crash.crash_id,
-                            file_path=crash.file_path,
-                            target_name=crash.target_name,
-                            input_data=crash.input_data,
-                            stack_trace=trace,
-                            signal=crash.signal,
-                            timestamp=crash.timestamp,
+                        continue
+
+                    trace = await engine.reproduce_crash(
+                        crash, Path(target_cfg.path), target_cfg.args
+                    )
+                    if not trace:
+                        logger.warning(
+                            "Crash %s reproduced but yielded no stack trace",
+                            crash.crash_id,
                         )
+
+                    crash = CrashInfo(
+                        crash_id=crash.crash_id,
+                        file_path=crash.file_path,
+                        target_name=crash.target_name,
+                        input_data=crash.input_data,
+                        stack_trace=trace,
+                        signal=crash.signal,
+                        timestamp=crash.timestamp,
+                    )
 
                     # Analyze via LLM
                     self._scheduler.record_call(LLMTaskType.CRASH_ANALYSIS)
@@ -510,6 +526,57 @@ class CampaignManager:
                 self._dashboard_queue.put_nowait(self._state.to_dict())
             except asyncio.QueueFull:
                 pass  # drop update if queue is full
+
+    # ------------------------------------------------------------------
+    # Results Export
+    # ------------------------------------------------------------------
+
+    def _export_results(self, output_dir: Path) -> None:
+        """Write structured results to disk at campaign end."""
+        results_dir = output_dir / "results"
+        results_dir.mkdir(parents=True, exist_ok=True)
+
+        # Campaign summary
+        summary = self._state.to_dict()
+        summary["config"] = {
+            "campaign_name": self._config.campaign.name,
+            "duration_seconds": self._config.campaign.duration_seconds,
+            "llm_enabled": self._llm_enabled,
+            "targets": [t.name for t in self._config.targets.binaries],
+            "differential_enabled": self._config.differential.enabled,
+        }
+        if self._corpus:
+            summary["corpus_stats"] = self._corpus.stats
+        if self._scheduler:
+            summary["llm_budget_status"] = self._scheduler.budget_status
+            summary["llm_roi"] = {
+                "total_calls": self._scheduler.roi.total_calls,
+                "total_new_edges": self._scheduler.roi.total_new_edges,
+                "total_new_crashes": self._scheduler.roi.total_new_crashes,
+                "edges_per_call": self._scheduler.roi.edges_per_call,
+            }
+
+        summary_path = results_dir / "campaign_results.json"
+        with open(summary_path, "w") as f:
+            json.dump(summary, f, indent=2, default=str)
+        console.print(f"  [green]✓[/green] Results exported to {summary_path}")
+
+        # Crash reports
+        if self._state.crash_reports:
+            crash_data = []
+            for report in self._state.crash_reports:
+                crash_data.append({
+                    "crash_id": getattr(report, "crash_id", "unknown"),
+                    "target": getattr(report, "target_name", "unknown"),
+                    "bug_class": getattr(report, "bug_class", "unknown"),
+                    "severity": getattr(report, "severity", "unknown"),
+                    "summary": getattr(report, "summary", ""),
+                    "root_cause": getattr(report, "root_cause", ""),
+                })
+            crashes_path = results_dir / "crash_reports.json"
+            with open(crashes_path, "w") as f:
+                json.dump(crash_data, f, indent=2)
+            console.print(f"  [green]✓[/green] {len(crash_data)} crash reports exported")
 
     # ------------------------------------------------------------------
     # Logging & Summary
