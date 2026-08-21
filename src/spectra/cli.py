@@ -35,7 +35,6 @@ def main() -> None:
     Combines AFL++ coverage-guided fuzzing with Google Gemini for
     crash trace analysis, semantic mutation, and differential comparison.
     """
-    pass
 
 
 @main.command()
@@ -255,6 +254,7 @@ def analyze(crash_id: str, config: str) -> None:
 def dashboard() -> None:
     """Launch the web dashboard standalone."""
     import uvicorn
+
     from spectra.dashboard.app import create_app
 
     app = create_app()

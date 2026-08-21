@@ -1,7 +1,5 @@
 """Tests for campaign corpus management."""
 
-import tempfile
-from pathlib import Path
 
 import pytest
 

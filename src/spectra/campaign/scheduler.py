@@ -116,16 +116,11 @@ class LLMScheduler:
             # Exponential backoff
             last = self._last_call_time.get(LLMTaskType.PLATEAU_MUTATION, 0)
             min_interval = self._config.triggers.plateau_threshold_seconds * self._plateau_backoff_factor
-            if now - last < min_interval:
-                return False
-
-            return True
+            return not now - last < min_interval
 
         if task_type == LLMTaskType.STRATEGY_REVIEW:
             interval = self._config.triggers.strategy_review_interval_seconds
-            if now - self._last_strategy_review < interval:
-                return False
-            return True
+            return not now - self._last_strategy_review < interval
 
         return True
 

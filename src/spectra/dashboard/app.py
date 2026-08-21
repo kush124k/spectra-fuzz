@@ -10,7 +10,6 @@ from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +96,7 @@ def create_app(
                     data = await asyncio.wait_for(ws.receive_text(), timeout=30)
                     if data == "ping":
                         await ws.send_text("pong")
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # Send periodic state update
                     if campaign_state and hasattr(campaign_state, "to_dict"):
                         await ws.send_json({"type": "state", "data": campaign_state.to_dict()})

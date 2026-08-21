@@ -1,12 +1,11 @@
 """Tests for the LLM mutator and scheduler."""
 
-import base64
 import time
 
 import pytest
 
 from spectra.campaign.scheduler import LLMScheduler, LLMTaskType
-from spectra.config import LLMBudget, LLMConfig, LLMTriggers, LLMMutationConfig
+from spectra.config import LLMBudget, LLMConfig, LLMMutationConfig, LLMTriggers
 from spectra.llm.mutator import LLMMutator, MutationRecord
 
 

@@ -1,14 +1,12 @@
 """Tests for the differential oracle and output normalization."""
 
-import pytest
 
+from spectra.config import DifferentialConfig
 from spectra.differential.normalizer import OutputNormalizer
 from spectra.differential.oracle import (
     DifferentialOracle,
-    DivergenceClass,
     TargetOutput,
 )
-from spectra.config import DifferentialConfig
 
 
 class TestOutputNormalizer:

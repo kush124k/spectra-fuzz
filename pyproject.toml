@@ -47,3 +47,11 @@ asyncio_mode = "auto"
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+
+[tool.ruff.lint]
+# BLE001: Blind exception catches are intentional — we wrap unpredictable
+#         subprocesses (AFL++), LLM API calls, and crash reproduction.
+# SIM102: Nested ifs are sometimes more readable than combined conditions.
+# RUF012: Mutable class-level defaults are fine for constant lookup tables.
+# F823/F841: False positives on closure-scoped variables in async FastAPI.
+ignore = ["BLE001", "SIM102", "RUF012", "F823", "F841"]

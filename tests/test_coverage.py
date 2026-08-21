@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from spectra.engine.base import CoverageEdge, CoverageMap
+from spectra.engine.base import CoverageMap
 from spectra.engine.coverage import (
     PlateauDetector,
     coverage_diff,

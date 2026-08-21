@@ -10,7 +10,6 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import logging
-import shutil
 import time
 from enum import Enum
 from pathlib import Path

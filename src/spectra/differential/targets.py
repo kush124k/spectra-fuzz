@@ -6,7 +6,7 @@ import asyncio
 import logging
 from pathlib import Path
 
-from spectra.config import TargetBinary, EngineConfig
+from spectra.config import EngineConfig, TargetBinary
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ class TargetManager:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        stdout, stderr = await proc.communicate()
+        _stdout, stderr = await proc.communicate()
 
         if proc.returncode == 0:
             logger.info("Target '%s' built successfully.", name)
@@ -105,7 +105,7 @@ class TargetManager:
             )
             try:
                 await asyncio.wait_for(proc.communicate(), timeout=5.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
                 logger.warning("Health check timed out for '%s'", name)
                 return False

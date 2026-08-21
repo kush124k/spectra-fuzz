@@ -10,13 +10,11 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import hashlib
-import json
 import logging
 import sqlite3
 import time
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -216,7 +214,7 @@ class DifferentialOracle:
                 runtime_ms=elapsed,
                 crashed=proc.returncode not in (0, None),
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             elapsed = (time.monotonic() - start) * 1000
             return TargetOutput(
                 target_name=name,
@@ -296,10 +294,7 @@ class DifferentialOracle:
             return True
 
         # Check exit codes
-        if a.exit_code != b.exit_code:
-            return True
-
-        return False
+        return a.exit_code != b.exit_code
 
     def _divergence_hash(self, input_data: bytes, a_name: str, b_name: str) -> str:
         """Compute a deduplication hash for a divergence."""

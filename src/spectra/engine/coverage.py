@@ -12,7 +12,6 @@ from collections import deque
 
 from spectra.engine.base import CoverageEdge, CoverageMap
 
-
 # ---------------------------------------------------------------------------
 # Bitmap parsing
 # ---------------------------------------------------------------------------

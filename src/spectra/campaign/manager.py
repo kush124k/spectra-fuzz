@@ -20,12 +20,11 @@ from pathlib import Path
 from typing import Any
 
 from rich.console import Console
-from rich.live import Live
 from rich.table import Table
 
-from spectra.config import SpectraConfig
 from spectra.campaign.corpus import CorpusManager, SeedOrigin
 from spectra.campaign.scheduler import LLMScheduler, LLMTaskType
+from spectra.config import SpectraConfig
 from spectra.engine.afl import AFLEngine
 from spectra.engine.coverage import PlateauDetector
 from spectra.llm.analyzer import CrashAnalyzer
@@ -178,7 +177,7 @@ class CampaignManager:
                 console.print(f"  [green]✓[/green] AFL++ started for [cyan]{target.name}[/cyan]")
             except Exception as e:
                 console.print(f"  [red]✗[/red] Failed to start AFL++ for {target.name}: {e}")
-                logger.error("Engine start failed for %s: %s", target.name, e, exc_info=True)
+                logger.exception("Engine start failed for %s", target.name)
 
         # --- Main loop ---
         console.print("\n[bold cyan]═══ Campaign Running ═══[/bold cyan]\n")
@@ -504,8 +503,9 @@ class CampaignManager:
     async def _run_dashboard(self) -> None:
         """Run the web dashboard in the background."""
         try:
-            from spectra.dashboard.app import create_app
             import uvicorn
+
+            from spectra.dashboard.app import create_app
 
             app = create_app(self._state, self._dashboard_queue)
             config = uvicorn.Config(

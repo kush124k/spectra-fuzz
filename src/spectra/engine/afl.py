@@ -13,7 +13,7 @@ import logging
 import os
 import re
 import time
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 from spectra.config import EngineConfig
 from spectra.engine.base import CoverageMap, CrashInfo, FuzzEngine, FuzzStats
@@ -134,7 +134,7 @@ class AFLEngine(FuzzEngine):
             self._process.terminate()
             try:
                 await asyncio.wait_for(self._process.wait(), timeout=10)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 self._process.kill()
                 await self._process.wait()
             logger.info("AFL++ stopped.")
@@ -229,7 +229,7 @@ class AFLEngine(FuzzEngine):
 
             self._known_crashes.add(crash_id)
             input_data = crash_file.read_bytes()
-            stack_hash = hashlib.sha256(input_data).hexdigest()[:16]
+            hashlib.sha256(input_data).hexdigest()[:16]
 
             # Try to extract signal from filename (AFL++ format: id:NNNNNN,sig:NN,...)
             signal = 0
@@ -334,7 +334,7 @@ class AFLEngine(FuzzEngine):
 
             try:
                 stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=10)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 proc.kill()
                 stdout, stderr = b"", b"TIMEOUT during crash reproduction"
 
